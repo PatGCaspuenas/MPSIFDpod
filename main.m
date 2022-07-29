@@ -1,10 +1,21 @@
-%% INSERT TITLE, DESCRIPTION OF THE METHOD, COPYRIGHT ETC ETC
-
-
+%% Multi-Pulse System Identification of Fluid Dynamics with POD basis
 %
-
-
-
+% Implementation of methodology proposed in the Bachelor Thesis "Non-linear
+% system identification for aerodynamic flows" by Patricia
+% García-Caspueñas, supervised by Stefano Discetti.
+%
+% This code serves as an example of the data preparation, training and
+% testing processes of the Fluidic Pinball configuration. Can be easily
+% generalized for the PIV0018 dataset.
+%
+% This code requires in input a structure of parameters for some given
+% functions. These parameters are explained inside each function.
+% Nevertheless, for a better understanding there exists an interactive
+% table containing all the required parameters along the process, found in:
+%
+% https://perfect-vibraphone-20c.notion.site/Code-8998ca572e30440f851aedbde6312d18
+%
+% Enjoy! =)
 %
 %% I. DATA PREPARATION
 %
@@ -62,7 +73,7 @@
 
     TrS.NTR.SVD = utils.POD.performPOD(TrS.NTR.SNP);                   % POD
     %
-    param.TruncationMethodPOD = {'elbow',''}; 
+    param.TruncationMethodPOD = {'elbow',''};                          % elbow of the cumulative energy curve to choose Nr
     TrS.NTR.SVD = utils.POD.truncatePOD(TrS.NTR.SNP,TrS.NTR.SVD,SNPM,param); % truncated POD
 
 %
@@ -77,156 +88,174 @@
 
 %
 
-param.methodSINDy = 'ALASSO';
-param.IntegratePressure = 1; param.TruncateFlowAccelerationNumDiff = 0; param.TruncateFlowAcceleration = 1;
-param.ErrorTypeRMSE = 'w'; param.mask = SNPM.BD.M(:);
-param.ComputeRMSEatMiddle = 1;
-param.mean = 0;
-param.TruncateFlowAccelerationSINDy = 1;
+param.OptimizationMethodSINDy = 'ALASSO';
+TrS.NTR.SINDy = utils.SINDy.SINDy_config(TrS.NTR.SVD,param);           % SINDy settings
+
+%
+% Training to retrieve each temporal mode dynamics
+%
+
+    poly_order = 0:2;                                                  % polynomial order of library matrix
+    %
+    TrS.NTR.SINDy = utils.SINDy.createModeDt(TrS.NTR.SINDy,TrS.NTR.SVD,param); % arrange structure to include each mode setting
+    %
+    % Look for optimal coefficients of each mode derivative function
+    %
+
+        for j = 1:TrS.NTR.SVD.r
+            %
+            j
+            Dj = strcat('D',num2str(j));
+            %
+            TrS.NTR.SINDy.(Dj).PO = poly_order;
+            %
+            % Create library
+            %
+    
+                TrS.NTR.SINDy.(Dj).Theta = ...
+                    utils.SINDy.poolpolyData(TrS.NTR.SINDy.(Dj).X,...
+                    TrS.NTR.SINDy.(Dj).Nx,...
+                    TrS.NTR.SINDy.(Dj).PO);
+    
+            %
+            % Find parsimonious model 
+            %
+    
+                tic
+                [TrS.NTR.SINDy.(Dj).Chi,...
+                    TrS.NTR.SINDy.(Dj).alpha,...
+                    TrS.NTR.SINDy.(Dj).delta,...
+                    TrS.NTR.SINDy.(Dj).R2,...
+                    TrS.NTR.SINDy.(Dj).Nact] = ...
+                    utils.SINDy.paretoElbowl1(TrS.NTR.SINDy.(Dj).Theta,...
+                    TrS.NTR.SINDy.(Dj).dX,...
+                    TrS.NTR.SINDy.alpha,...
+                    TrS.NTR.SINDy.delta, ...
+                    TrS.NTR.SINDy.ftol,...
+                    TrS.NTR.SINDy.tol);
+                toc
+            %
+            % Create global matrix of coefficients
+            %
+
+                TrS.NTR.SINDy.Chi(:,j) = TrS.NTR.SINDy.(Dj).Chi;
+
+        end
+
+    %
+
 %
 
 
+
+%
+%% IV. TEMPORAL MODE SET INTEGRATION AND VELOCITY AND PRESSURE RECONSTRUCTION
 %
 
-TrS.NTR.SINDy = SINDyconfig(TrS.NTR.SVD,param); % SINDy settings
+
+
 %
-%% Training
-%
-poly_n = 0:2; % polynomial order of library matrix
+% Create ICs snapshots
 %
 
-TrS.NTR.SINDy = createModeDt(TrS.NTR.SINDy,TrS.NTR.SVD,param);
+    % param.u_m & param.v_m from before
+    param.ts = 5;                                                     % Time separation between available snapshots
+    param.FlagNTRTimeSpacing = 'r';                                   % Regular time separation
+    %
+    TS.NTR = utils.data_settings.createNTRSet(TS.TR.SNP,SNPM,param);  % non-time-resolved testing set
+
 %
-% Look for optimal coefficients of each mode derivative function
+% Integrate ICs and reconstruct
 %
-for j = 1:TrS.NTR.SVD.r
+
+    param.odeIntegratorOption = 'odeSINDyGlobal';                     % choose the integrator
+    param.IntegratePressure = 1;                                      % integrates pressure gradient in space or not
+    param.PressureBoundaryCondition = {1,TS.TR.SNP.p(1,:),1,1};       % boundary conditions options
     %
-    j
-    Dj = strcat('D',num2str(j));
-    %
-    TrS.NTR.SINDy.(Dj).PO = poly_n;
-    %
-    % Create library
-    %
-    TrS.NTR.SINDy.(Dj).Theta = ...
-        poolpolyData(TrS.NTR.SINDy.(Dj).X,...
-        TrS.NTR.SINDy.(Dj).Nx,...
-        TrS.NTR.SINDy.(Dj).PO);
-    %
-    % Find parsimonious model 
-    %
-    tic
-    [TrS.NTR.SINDy.(Dj).Chi,...
-        TrS.NTR.SINDy.(Dj).alpha,...
-        TrS.NTR.SINDy.(Dj).delta,...
-        TrS.NTR.SINDy.(Dj).R2,...
-        TrS.NTR.SINDy.(Dj).Nact] = ...
-        paretoElbowl1(TrS.NTR.SINDy.(Dj).Theta,...
-        TrS.NTR.SINDy.(Dj).dX,...
-        TrS.NTR.SINDy.alpha,...
-        TrS.NTR.SINDy.delta,...
-        TrS.NTR.SINDy.tol);
-    toc
-end
-filename = strcat('MPIV_FP_t1_O2_I.mat');
-% save(fullfile(fname, filename),'TrS','SNPM','param','-v7.3');
+    TS.NTR.BFI = utils.integration.getBFI(...
+        TS.NTR.SNP,TrS.NTR.SINDy,TrS.NTR.SVD,param);
+    TS.NTR.BFI.bf = utils.integration.reconstructBFI(...
+        TS.TR.SNP,TS.NTR.BFI.bf,TrS.NTR.SVD,TrS.NTR.SINDy,SNPM,param);
+
 %
-TrS.TR = [];
+
+
+
 %
-%% Testing
+%% V. COMPARISON MODELS
 %
-ts_lin = 50; %[ 1 2 4 5 6 8 10 ];
-param.IntegratePressure = 1;
-param.TruncateFlowAccelerationSINDy = 0;
-param.PressureBC = TS.TR.SNP.p(1,:);
-param.NeglectIntermediateResults = 1;
-param.TaylorHypothesisMask = ones(size(SNPM.X));
-param.TaylorHypothesisMask( SNPM.X > 0.5 ) = 0;
+
+
+
 %
-for i = 1:param.Nr
-    %
-    Dj = strcat('D',num2str(i));
-    TrS.NTR.SINDy.Chi(:,i) = TrS.NTR.SINDy.(Dj).Chi;
-    %
-end
-% [TS.TR.SNPr,~] = truncateTRorNTR(TS.TR.SNP,TrS.NTR.SVD,SNPM,0,param);
+% Time-resolved truncates testing
 %
-for k = 1:length(ts_lin)
+
+    % param.IntegratePressure & param.PressureBoundaryCondition from before
+    param.TruncateFlowAcceleration = 1;                               % obtain truncated acceleration
+    param.TruncateFlowAccelerationNumDiff = 0;                        % obtain truncated acceleration from numerical differentiation
+    param.TruncateFlowAccelerationSINDy = 0;                          % obtain truncated acceleration from SINDy's dynamical system
     %
-      param.NTRTimeSpacing = 'r'; param.ts =ts_lin(k);
+    [TS.TR.SNPr,~] = utils.POD.truncateTRorNTR(TS.TR.SNP,TrS.NTR.SVD,SNPM,0,param);
+    TS.TR.SVD.ar = (TrS.NTR.SVD.Ur'*[TS.TR.SNP.udt;TS.TR.SNP.vdt])';  % truncated time-resolved temporal mode set (ground truth)
+
+%
+% Spline Interpolated model
+%
+
+    % param.IntegratePressure & param.PressureBoundaryCondition from before
     %
-    TS.NTR = createNTRSet(TS.TR.SNP,SNPM,param); % non-time resolved testing set 
+    TS.NTR.SI = utils.comparison.getSI(TS.NTR.SNP,TrS.NTR.SVD,param);  % cubic spline interpolated temporal modes
+    TS.NTR.SI = utils.comparison.reconstructSI(TS.TR.SNP,TS.NTR.SI,TrS.NTR.SVD,SNPM,param); % cubic spline interpolated velocity and pressure fields
+
+%
+% Taylor Hypothesis model
+%
+
+    % param.IntegratePressure & param.PressureBoundaryCondition from before  
+    param.TaylorHypothesisMask = ones(size(SNPM.X));                   % mask to avoid advection of body BCs
+    param.TaylorHypothesisMask( SNPM.X > 0.5 ) = 0;
     %
-%     TS.NTR.SNPr.Dt = TS.NTR.SNP.Dt;
-%     TS.NTR.SNPr.t = TS.NTR.SNP.t;
-%     uvr = TrS.NTR.SVD.Ur*(TrS.NTR.SVD.Ur'*TS.NTR.SNP.uvdt) + [TS.NTR.SNP.u_m;TS.NTR.SNP.v_m];
-%     TS.NTR.SNPr.u = uvr(1:SNPM.m*SNPM.n,:);
-%     TS.NTR.SNPr.v = uvr((1+SNPM.m*SNPM.n):end,:);
-%     TS.NTR.SNPr.uvdt = TrS.NTR.SVD.Ur*(TrS.NTR.SVD.Ur'*TS.NTR.SNP.uvdt);
-    %
-    param.odeOption = 'odeSINDyGlobal';
-    tic
-    TS.NTR.BFI = getBFI(TS.NTR.SNP,TrS.NTR.SINDy,TrS.NTR.SVD,param);
-    toc
-%     TS.NTR.BFI.bf = reconstructBFI(TS.TR.SNP,TS.NTR.BFI.bf,TrS.NTR.SVD,TrS.NTR.SINDy,SNPM,param);
-%     %
-%     TS.NTR.SI = getSI(TS.NTR.SNP,TrS.NTR.SVD,param);
-%     TS.NTR.SI = reconstructSI(TS.TR.SNP,TS.NTR.SI,TrS.NTR.SVD,SNPM,param);
-%     %
-%     TS.NTR.TH = getTHBFI3(TS.NTR.SNPr,SNPM,param);
-%     TS.NTR.TH.u = TS.NTR.TH.U(1:SNPM.m*SNPM.n,:);   TS.NTR.TH.v = TS.NTR.TH.U((1+SNPM.m*SNPM.n):end,:);
-%     TS.NTR.TH.udt = TS.NTR.TH.u - param.u_m;     TS.NTR.TH.vdt = TS.NTR.TH.v - param.v_m;
-%     TS.NTR.TH.uvdt = [TS.NTR.TH.udt; TS.NTR.TH.vdt];
-%     %
-%     TS.NTR.TH.du = numDifferentiation(TS.NTR.TH.u,TS.NTR.TH.t);
-%     TS.NTR.TH.dv = numDifferentiation(TS.NTR.TH.v,TS.NTR.TH.t);
-%     %
-%     TS.NTR.TH = getPGradient(TS.NTR.TH,SNPM);
-%     TS.NTR.TH.p = pIntegratorSNPM(TS.NTR.TH,SNPM,param);
-    %
-    TS.TR.SVD.ar = (TrS.NTR.SVD.Ur'*TS.TR.SNP.uvdt)';
-%     TS.NTR.TH.ar = (TrS.NTR.SVD.Ur'*[ TS.NTR.TH.udt; TS.NTR.TH.vdt ])';
-    %
-    % RMSE pressure fields
-    %
-    Nt = size(TS.NTR.BFI.bf.p,2);
-    %
-    RMSE.ptr(k) = computeRMSE(TS.TR.SNP.p,TS.TR.SNPr.p,SNPM,param);
-    RMSE.pBFI(k) = computeRMSE(TS.TR.SNP.p(:,1:Nt),TS.NTR.BFI.bf.p,SNPM,param);
-    RMSE.ptrBFI(k) = computeRMSE(TS.TR.SNPr.p(:,1:Nt),TS.NTR.BFI.bf.p,SNPM,param);
-    RMSE.pSI(k) = computeRMSE(TS.TR.SNP.p(:,1:Nt),TS.NTR.SI.p,SNPM,param);
-    RMSE.ptrSI(k) = computeRMSE(TS.TR.SNPr.p(:,1:Nt),TS.NTR.SI.p,SNPM,param);
-    RMSE.ptrTH(k) = computeRMSE(TS.TR.SNPr.p(:,1:Nt),TS.NTR.TH.p,SNPM,param);
-    RMSE.pTH(k) = computeRMSE(TS.TR.SNP.p(:,1:Nt),TS.NTR.TH.p,SNPM,param);
-    %
-    % RMSE velocity fields
-    %
-    RMSE.uvtr(k) = computeRMSE(TS.TR.SNP.uvdt,TS.TR.SNPr.uvdt,SNPM,param);
-    RMSE.uvBFI(k) = computeRMSE(TS.TR.SNP.uvdt(:,1:Nt),TS.NTR.BFI.bf.uvdt,SNPM,param); 
-    RMSE.uvtrBFI(k) = computeRMSE(TS.TR.SNPr.uvdt(:,1:Nt),TS.NTR.BFI.bf.uvdt,SNPM,param);
-    RMSE.uvSI(k) = computeRMSE(TS.TR.SNP.uvdt(:,1:Nt),TS.NTR.SI.uvdt,SNPM,param);
-    RMSE.uvtrSI(k) = computeRMSE(TS.TR.SNPr.uvdt(:,1:Nt),TS.NTR.SI.uvdt,SNPM,param);
-    RMSE.uvTH(k) = computeRMSE(TS.TR.SNP.uvdt(:,1:Nt),TS.NTR.TH.uvdt,SNPM,param);
-    RMSE.uvtrTH(k) = computeRMSE(TS.TR.SNPr.uvdt(:,1:Nt),TS.NTR.TH.uvdt,SNPM,param);
-    %
-    % Correlation factor R2
-    %
-    RMSE.R2.BFI_X(k,:) = getR2factor('c',TS.TR.SVD.ar,TS.NTR.BFI.bf.X,param);
-    RMSE.R2.SI_X(k,:) = getR2factor('c',TS.TR.SVD.ar,TS.NTR.SI.X,param);
-    RMSE.R2.TH_X(k,:) = getR2factor('c',TS.TR.SVD.ar,TS.NTR.TH.ar,param);
-    %
-    filename = strcat('MPIV_FP_TS_ts',num2str(ts_lin(k)),'.mat');
-    %
-    TS.NTR.BFI.bf.dpdx = []; TS.NTR.BFI.bf.dpdy = [];
-    TS.NTR.BFI.bf.duv = []; TS.NTR.BFI.bf.uv = [];    TS.NTR.BFI.bf.uvdt = [];
-    %
-    TS.NTR.SI.dpdx = []; TS.NTR.SI.dpdy = [];
-    TS.NTR.SI.duv = []; TS.NTR.SI.uv = [];    TS.NTR.SI.uvdt = [];
-    %
-    TS_NTR_BFI = TS.NTR.BFI;
-    TS_NTR_SI = TS.NTR.SI;
-    TS_NTR_TH = TS.NTR.TH;
-    save(fullfile(fname, filename),'TS_NTR_BFI','TS_NTR_SI','TS_NTR_TH','RMSE','-v7.3')
-    %
-    TS.NTR = []; clear TS_NTR_SI; clear TS_NTR_BFI; clear TS_NTR_TH;
-end
+    TS.NTR.TH = utils.comparison.getTH(TS.NTR.SNPr,SNPM,param);
+    TS.NTR.TH = utils.comparison.reconstructTH(TS.TR.SNP,TS.NTR.TH,TrS.NTR.SVD,SNPM,param);
+
+%
+
+
+
+%
+%% VI. ERROR DETERMINATION (section included to show error functions performances)
+%
+
+
+
+%
+
+    % param.ts from before
+    param.ErrorTypeRMSE = 'w';                                         % single-value error
+    param.ComputeRMSEatMiddle = 1;                                     % compute error at middle point between available ICs snapshots
+
+%
+% Root Mean Square Error between truncated DNS reference and BFI/SI/TH
+%
+
+    err_ptrBFI = utils.err_eval.computeRMSE(...
+                 TS.TR.SNPr.p,TS.NTR.BFI.bf.p,SNPM,param); 
+    err_ptrSI = utils.err_eval.computeRMSE(...
+                 TS.TR.SNPr.p,TS.NTR.SI.p,SNPM,param);
+    err_ptrTH = utils.err_eval.computeRMSE(...
+                 TS.TR.SNPr.p,TS.NTR.TH.p,SNPM,param);
+
+%
+% R-squared coefficients between truncated DNS reference temporal mode set
+% and integrated temporal modes with BFI/SI/TH
+%
+
+    R2_BFI  = utils.err_eval.getR2factor(...
+              'c',TS.TR.SVD.ar,TS.NTR.BFI.bf.X,param);
+    R2_SI  = utils.err_eval.getR2factor(...
+              'c',TS.TR.SVD.ar,TS.NTR.SI.X,param);
+    R2_SI  = utils.err_eval.getR2factor(...
+              'c',TS.TR.SVD.ar,TS.NTR.SI.X,param);
+
+%
