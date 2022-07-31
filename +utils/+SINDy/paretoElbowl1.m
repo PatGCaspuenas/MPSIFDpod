@@ -51,8 +51,8 @@ function [Xi,Alpha,Delta,R2,Nact] = paretoElbowl1(Theta,dX,alpha,delta,ftol,tol)
 % Compute Euclidean distance grid
 %
 
-    for i = 1:size(Alpha,1)
-        for j = 1:size(Delta,2)
+    for i = 1:size(ALPHA,1)
+        for j = 1:size(DELTA,2)
             D(i,j) = computeEuclideanD(m,n,NACT(i,j),RSQUARED(i,j));
         end
     end
@@ -127,7 +127,7 @@ function [Xi,Alpha,Delta,R2,Nact] = paretoElbowl1(Theta,dX,alpha,delta,ftol,tol)
 %
 
     Xi = zeros(size(Theta,2),1);
-    Xi = ALASSO(Theta, dX,Alpha, Delta, ftol,tol);
+    Xi = utils.SINDy.ALASSO(Theta, dX,Alpha, Delta, ftol,tol);
 
 %
 end

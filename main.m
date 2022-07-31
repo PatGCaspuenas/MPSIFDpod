@@ -17,6 +17,8 @@
 %
 % Enjoy! =)
 %
+clc; clear all; close all;
+%
 %% I. DATA PREPARATION
 %
 
@@ -32,9 +34,9 @@
 % Data loading
 %
 
-    TrS.TR = utils.data_setings.createTRSet('FP_14k_24k.mat');    % create time-resolved training set
-    TS.TR  = utils.data_setings.createTRSet('FP_10k_13k.mat');    % create time-resolved testing set
-    SNPM   = utils.data_settings.prepareSNPM('FP');               % general grid settings
+    TrS.TR = utils.data_settings.createTRSet('FP_14k_24k.mat');    % create time-resolved training set
+    TS.TR  = utils.data_settings.createTRSet('FP_10k_13k.mat');    % create time-resolved testing set
+    SNPM   = utils.data_settings.prepareSNPM('FP');                % general grid settings
 
 %
 % Create NTR data for training
@@ -43,7 +45,7 @@
     param.ts = 1;                                                 % average time separation between snapshots
     param.FlagNTRTimeSpacing = 'irr';                             % flag to determine regular/irregular spacing
     %
-    TrS.NTR = utils.data_setings.createNTRSet(TrS.TR,SNPM,param); % non-time resolved training set
+    TrS.NTR = utils.data_settings.createNTRSet(TrS.TR,SNPM,param);% non-time resolved training set
     TrS.TR = [];                                                  % free unnecessary space from time-resolved training
 
 %
@@ -55,7 +57,7 @@
     param.NTRTimeSpacing = 'r';                                        % flag to determine regular/irregular spacing
     param.ts = SNPM.Dt;                                                % average time separation between snapshots (TR separation)
     %
-    TS.TR = createNTRSet(TS.TR,SNPM,param);                            % time resolved testing set
+    TS.TR =utils.data_settings.createNTRSet(TS.TR,SNPM,param);         % time resolved testing set
     
 %
 
@@ -74,7 +76,7 @@
     TrS.NTR.SVD = utils.POD.performPOD(TrS.NTR.SNP);                   % POD
     %
     param.TruncationMethodPOD = {'elbow',''};                          % elbow of the cumulative energy curve to choose Nr
-    TrS.NTR.SVD = utils.POD.truncatePOD(TrS.NTR.SNP,TrS.NTR.SVD,SNPM,param); % truncated POD
+    TrS.NTR.SVD = utils.POD.truncatePOD(TrS.NTR.SNP,TrS.NTR.SVD,param); % truncated POD
 
 %
 
@@ -88,7 +90,7 @@
 
 %
 
-param.OptimizationMethodSINDy = 'ALASSO';
+param.OptimizationMethodSINDy = {'ALASSO','FP'};
 TrS.NTR.SINDy = utils.SINDy.SINDy_config(TrS.NTR.SVD,param);           % SINDy settings
 
 %
@@ -96,8 +98,9 @@ TrS.NTR.SINDy = utils.SINDy.SINDy_config(TrS.NTR.SVD,param);           % SINDy s
 %
 
     poly_order = 0:2;                                                  % polynomial order of library matrix
+    TrS.NTR.SINDy.PO = poly_order;
     %
-    TrS.NTR.SINDy = utils.SINDy.createModeDt(TrS.NTR.SINDy,TrS.NTR.SVD,param); % arrange structure to include each mode setting
+    TrS.NTR.SINDy = utils.SINDy.createModeDt(TrS.NTR.SINDy,TrS.NTR.SVD); % arrange structure to include each mode setting
     %
     % Look for optimal coefficients of each mode derivative function
     %
@@ -113,8 +116,8 @@ TrS.NTR.SINDy = utils.SINDy.SINDy_config(TrS.NTR.SVD,param);           % SINDy s
             %
     
                 TrS.NTR.SINDy.(Dj).Theta = ...
-                    utils.SINDy.poolpolyData(TrS.NTR.SINDy.(Dj).X,...
-                    TrS.NTR.SINDy.(Dj).Nx,...
+                    utils.SINDy.poolpolyData(TrS.NTR.SINDy.X,...
+                    TrS.NTR.SINDy.Nx,...
                     TrS.NTR.SINDy.(Dj).PO);
     
             %
@@ -173,7 +176,7 @@ TrS.NTR.SINDy = utils.SINDy.SINDy_config(TrS.NTR.SVD,param);           % SINDy s
     param.PressureBoundaryCondition = {1,TS.TR.SNP.p(1,:),1,1};       % boundary conditions options
     %
     TS.NTR.BFI = utils.integration.getBFI(...
-        TS.NTR.SNP,TrS.NTR.SINDy,TrS.NTR.SVD,param);
+        TS.NTR.SNP,TrS.NTR.SINDy,TrS.NTR.SVD,SNPM,param);
     TS.NTR.BFI.bf = utils.integration.reconstructBFI(...
         TS.TR.SNP,TS.NTR.BFI.bf,TrS.NTR.SVD,TrS.NTR.SINDy,SNPM,param);
 
@@ -205,7 +208,7 @@ TrS.NTR.SINDy = utils.SINDy.SINDy_config(TrS.NTR.SVD,param);           % SINDy s
 
     % param.IntegratePressure & param.PressureBoundaryCondition from before
     %
-    TS.NTR.SI = utils.comparison.getSI(TS.NTR.SNP,TrS.NTR.SVD,param);  % cubic spline interpolated temporal modes
+    TS.NTR.SI = utils.comparison.getSI(TS.NTR.SNP,TrS.NTR.SVD,SNPM);  % cubic spline interpolated temporal modes
     TS.NTR.SI = utils.comparison.reconstructSI(TS.TR.SNP,TS.NTR.SI,TrS.NTR.SVD,SNPM,param); % cubic spline interpolated velocity and pressure fields
 
 %
@@ -216,7 +219,7 @@ TrS.NTR.SINDy = utils.SINDy.SINDy_config(TrS.NTR.SVD,param);           % SINDy s
     param.TaylorHypothesisMask = ones(size(SNPM.X));                   % mask to avoid advection of body BCs
     param.TaylorHypothesisMask( SNPM.X > 0.5 ) = 0;
     %
-    TS.NTR.TH = utils.comparison.getTH(TS.NTR.SNPr,SNPM,param);
+    TS.NTR.TH = utils.comparison.getTH(TS.NTR.SNP,TrS.NTR.SVD,SNPM,param);
     TS.NTR.TH = utils.comparison.reconstructTH(TS.TR.SNP,TS.NTR.TH,TrS.NTR.SVD,SNPM,param);
 
 %
@@ -239,11 +242,11 @@ TrS.NTR.SINDy = utils.SINDy.SINDy_config(TrS.NTR.SVD,param);           % SINDy s
 % Root Mean Square Error between truncated DNS reference and BFI/SI/TH
 %
 
-    err_ptrBFI = utils.err_eval.computeRMSE(...
+    err_ptrBFI = utils.error_eval.computeRMSE(...
                  TS.TR.SNPr.p,TS.NTR.BFI.bf.p,SNPM,param); 
-    err_ptrSI = utils.err_eval.computeRMSE(...
+    err_ptrSI = utils.error_eval.computeRMSE(...
                  TS.TR.SNPr.p,TS.NTR.SI.p,SNPM,param);
-    err_ptrTH = utils.err_eval.computeRMSE(...
+    err_ptrTH = utils.error_eval.computeRMSE(...
                  TS.TR.SNPr.p,TS.NTR.TH.p,SNPM,param);
 
 %
@@ -251,11 +254,11 @@ TrS.NTR.SINDy = utils.SINDy.SINDy_config(TrS.NTR.SVD,param);           % SINDy s
 % and integrated temporal modes with BFI/SI/TH
 %
 
-    R2_BFI  = utils.err_eval.getR2factor(...
-              'c',TS.TR.SVD.ar,TS.NTR.BFI.bf.X,param);
-    R2_SI  = utils.err_eval.getR2factor(...
-              'c',TS.TR.SVD.ar,TS.NTR.SI.X,param);
-    R2_SI  = utils.err_eval.getR2factor(...
-              'c',TS.TR.SVD.ar,TS.NTR.SI.X,param);
+    R2_BFI  = utils.error_eval.getR2factor(...
+              'c',TS.TR.SVD.ar,TS.NTR.BFI.bf.X);
+    R2_SI  = utils.error_eval.getR2factor(...
+              'c',TS.TR.SVD.ar,TS.NTR.SI.X);
+    R2_TH  = utils.error_eval.getR2factor(...
+              'c',TS.TR.SVD.ar,TS.NTR.TH.ar);
 
 %

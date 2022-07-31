@@ -26,10 +26,10 @@ function p = pIntegratorSNPM(SNP,SNPM,param)
 % Parameters
 %
 
-    ImposeBC = param.PressureboundaryCondition{1};        % Impose Boundary Condition (1) or not (0)
-    p0 = param.PressureboundaryCondition{2};              % BC history of selected region of dimensions Nx x Nt
-    ix = param.PressureboundaryCondition{3};              % x region of dimensions 1 x Nx (indexes of X grid)
-    iy = param.PressureboundaryCondition{4};              % y region of dimensions Nx x 1 (indexes of Y grid)
+    ImposeBC = param.PressureBoundaryCondition{1};        % Impose Boundary Condition (1) or not (0)
+    p0 = param.PressureBoundaryCondition{2};              % BC history of selected region of dimensions Nx x Nt
+    ix = param.PressureBoundaryCondition{3};              % x region of dimensions 1 x Nx (indexes of X grid)
+    iy = param.PressureBoundaryCondition{4};              % y region of dimensions Nx x 1 (indexes of Y grid)
     Mask = SNPM.BD.M;                                     % body mask
     Dx = SNPM.Dx;                                         % regular x spacing
     Dy = SNPM.Dy;                                         % regular y spacing

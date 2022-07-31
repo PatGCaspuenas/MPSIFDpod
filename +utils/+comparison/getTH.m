@@ -1,4 +1,4 @@
-function TH = getTH(SNP,SNPM,param)
+function TH = getTH(SNP,SVDtr,SNPM,param)
 %%                            getTH.m
 %--------------------------------------------------------------------------
 %
@@ -12,6 +12,8 @@ function TH = getTH(SNP,SNPM,param)
 %
 %   SNP      : structure containing, among others, velocity and
 %              temporal fields with no temporal resolution
+%   SVDtr    : structure containing, among others, truncated spatial mode
+%              set
 %   SNPM     : structure containing main relevant geometric parameters of
 %              dataset
 %   param    : structure with parameters to be used for the given function
@@ -36,7 +38,7 @@ function TH = getTH(SNP,SNPM,param)
         j = find( Mask(1,:) == 1 ,1,'last');                   % Smooth transition between 
                                                                % mask and no-mask regions
         Nc = 8;
-        Mask(:,j-Nc:j) = (0.9:-0.1:0.1).*ones(m,Nc+1);
+        Mask(:,j-Nc:j) = (0.9:-0.1:0.1).*ones(SNPM.m,Nc+1);
         %
     else
         %
@@ -61,8 +63,9 @@ function TH = getTH(SNP,SNPM,param)
     TH.Dt = Dts;                                               % Time separation objective: TR
     TH.ti = SNP.t;                                             % Time instants at ICs
     %
-    TH.ui = [ SNP.u ];                                         % Snapshots used as initial conditions
-    TH.vi = [ SNP.v ];  
+    uvi = SVDtr.Ur*(SVDtr.Ur'*[SNP.udt;SNP.vdt]) + [SNP.u_m;SNP.v_m];
+    TH.ui = uvi(1:SNPM.m*SNPM.n,:);                                     % Snapshots used as initial conditions
+    TH.vi = uvi((1+SNPM.m*SNPM.n):end,:);     
     %
     Ui = reshape(TH.ui,[size(X) Nti]);
     Vi = reshape(TH.vi,[size(X) Nti]);

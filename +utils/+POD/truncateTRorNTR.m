@@ -115,7 +115,7 @@ function [SNPtr,SVDt ] = truncateTRorNTR(SNP,SVDtr,SNPM,SINDytr,param)
                 else                                        % truncated acceleration from projection of available non-truncated acceleration fields
                     %
                     SVDt.dVr = (inv(SVDtr.Sr)*SVDtr.Ur'*[SNP.du; SNP.dv])';
-                    SVDt.dar = (SVDtr.Ur'*SNP.duv)';
+                    SVDt.dar = (SVDtr.Ur'*[SNP.du; SNP.dv])';
                     %
                 end
                 %

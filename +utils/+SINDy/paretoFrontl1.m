@@ -64,7 +64,7 @@ function [Alpha,Delta,R2,Nact] = paretoFrontl1(Theta,dX,alpha,delta,ftol,tol)
         Chi = utils.SINDy.ALASSO(Thetaa, dXa,...
         Alpha(i,j), Delta(i,j),ftol,tol);
         %
-        R2(i,j) = utils.error_eval.getR2factor('d',dXb,Thetab*Chi,0);
+        R2(i,j) = utils.error_eval.getR2factor('d',dXb,Thetab*Chi);
         Nact(i,j) = nnz(Chi);                           % number of nonzero terms in Chi
         %
     end

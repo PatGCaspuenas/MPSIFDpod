@@ -78,8 +78,8 @@ function Xii = ALASSO(Theta, dX, alpha, delta, ftol,tol)
         %
         % Sparsify solution
         %
-
-            Xii(nzi,1) = Chi(nzi,1)./W(nzi);    % weighted solution
+            
+            Xii(nzi,1) = Chi./W(nzi);    % weighted solution
             %
             zi = find(abs(Xii(:,1)) <= max(abs(Xii(:,1)))*tol); 
             nzi = find(abs(Xii(:,1)) > max(abs(Xii(:,1)))*tol);

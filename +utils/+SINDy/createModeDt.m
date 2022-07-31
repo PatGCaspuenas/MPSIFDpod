@@ -21,6 +21,7 @@ function SINDy = createModeDt(SINDy,SVD)
 
 Nx = SVD.r;
 SINDy.Nx = Nx;                     % Number of states of the system
+SINDy.X = SVD.ar(:,1:Nx);          % States values
 %
 
 for i = 1:SINDy.Nx

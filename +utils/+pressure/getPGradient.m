@@ -79,12 +79,12 @@ function M = getPGradient(M,SNPM,param)
             %
             for it = 1:size(M.u,2)
                 %
-                [ Dudx,Dudy ] = utils.differentiation.getGradient(M.u(:,nt),SNPM);
+                [ Dudx,Dudy ] = utils.differentiation.getGradient(M.u(:,it),SNPM);
                 %
                 dudx(:,it) = reshape(Dudx, [ m*n 1 ]);
                 dudy(:,it) = reshape(Dudy, [ m*n 1 ]);
                 %
-                [ Dvdx, Dvdy] = utils.differentiation.getGradient(M.v(:,nt),SNPM);
+                [ Dvdx, Dvdy] = utils.differentiation.getGradient(M.v(:,it),SNPM);
                 %
                 dvdx(:,it) = reshape(Dvdx, [ m*n 1 ]);
                 dvdy(:,it) = reshape(Dvdy, [ m*n 1 ]);
