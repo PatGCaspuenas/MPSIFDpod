@@ -217,7 +217,7 @@ function  SNPM = prepareSNPM(flow)
         %
     elseif (strcmp(flow,'PIV0018') == 1) || (strcmp(flow,'PIV0018_2') == 1)
         %
-        load('NACA0018.dat');
+        load('D:\MPSIFDpod\+data\NACA0018.dat');
         %
         % Map NACA airfoil
         %

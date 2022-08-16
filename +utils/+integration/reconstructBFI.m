@@ -53,7 +53,7 @@ function BFI = reconstructBFI(SNP,BFI,SVDtr,SINDytr,SNPM,param)
 % Derivatives of the reconstructed states
 %
 
-    BFI.dX = getDerSINDy(SINDytr,BFI.X);
+    BFI.dX = utils.SINDy.getDerSINDy(SINDytr,BFI.X);
 
 %
 % Rerconstructed velocity fields

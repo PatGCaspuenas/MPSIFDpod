@@ -28,8 +28,8 @@ function dX = getDerSINDy(SINDytr,X)
         %
         Di = strcat('D',num2str(i));
         %
-        Xi = X(:,1:SINDytr.(Di).Nx);
-        Theta = utils.SINDy.poolpolyData(Xi,SINDytr.(Di).Nx,SINDytr.(Di).PO);
+        Xi = X(:,1:SINDytr.Nx);
+        Theta = utils.SINDy.poolpolyData(Xi,SINDytr.Nx,SINDytr.(Di).PO);
         %
         dX(:,i) = Theta*SINDytr.(Di).Chi;
         %

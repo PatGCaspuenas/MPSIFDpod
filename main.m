@@ -18,6 +18,7 @@
 % Enjoy! =)
 %
 clc; clear all; close all;
+warning('off','all');
 %
 %% I. DATA PREPARATION
 %
@@ -34,8 +35,8 @@ clc; clear all; close all;
 % Data loading
 %
 
-    TrS.TR = utils.data_settings.createTRSet('FP_14k_24k.mat');    % create time-resolved training set
-    TS.TR  = utils.data_settings.createTRSet('FP_10k_13k.mat');    % create time-resolved testing set
+    TrS.TR = utils.data_settings.createTRSet('.\+data\FP_14k_24k.mat');    % create time-resolved training set
+    TS.TR  = utils.data_settings.createTRSet('.\+data\FP_10k_13k.mat');    % create time-resolved testing set
     SNPM   = utils.data_settings.prepareSNPM('FP');                % general grid settings
 
 %
@@ -54,7 +55,7 @@ clc; clear all; close all;
 
     param.u_m = TrS.NTR.SNP.u_m;                                       % mean horizontal velocity field from training
     param.v_m = TrS.NTR.SNP.v_m;                                       % mean vertical velocity field from training
-    param.NTRTimeSpacing = 'r';                                        % flag to determine regular/irregular spacing
+    param.FlagNTRTimeSpacing = 'r';                                        % flag to determine regular/irregular spacing
     param.ts = SNPM.Dt;                                                % average time separation between snapshots (TR separation)
     %
     TS.TR =utils.data_settings.createNTRSet(TS.TR,SNPM,param);         % time resolved testing set
@@ -162,7 +163,7 @@ TrS.NTR.SINDy = utils.SINDy.SINDy_config(TrS.NTR.SVD,param);           % SINDy s
 %
 
     % param.u_m & param.v_m from before
-    param.ts = 5;                                                     % Time separation between available snapshots
+    param.ts = 5.3;                                                     % Time separation between available snapshots
     param.FlagNTRTimeSpacing = 'r';                                   % Regular time separation
     %
     TS.NTR = utils.data_settings.createNTRSet(TS.TR.SNP,SNPM,param);  % non-time-resolved testing set
@@ -171,7 +172,7 @@ TrS.NTR.SINDy = utils.SINDy.SINDy_config(TrS.NTR.SVD,param);           % SINDy s
 % Integrate ICs and reconstruct
 %
 
-    param.odeIntegratorOption = 'odeSINDyGlobal';                     % choose the integrator
+    param.odeIntegratorOption = 'utils.integration.odeSINDyGlobal';                     % choose the integrator
     param.IntegratePressure = 1;                                      % integrates pressure gradient in space or not
     param.PressureBoundaryCondition = {1,TS.TR.SNP.p(1,:),1,1};       % boundary conditions options
     %
@@ -222,6 +223,14 @@ TrS.NTR.SINDy = utils.SINDy.SINDy_config(TrS.NTR.SVD,param);           % SINDy s
     TS.NTR.TH = utils.comparison.getTH(TS.NTR.SNP,TrS.NTR.SVD,SNPM,param);
     TS.NTR.TH = utils.comparison.reconstructTH(TS.TR.SNP,TS.NTR.TH,TrS.NTR.SVD,SNPM,param);
 
+%
+% Make reference DNS and retrieved models of equal length
+%
+    
+    endt = find( TS.TR.SNP.t == TS.NTR.TH.t(end) ,1,'last');
+    TS.TR.SNPr = utils.data_settings.removeFinalInstants(TS.TR.SNPr,TS.NTR.TH);
+    TS.TR.SNP = utils.data_settings.removeFinalInstants(TS.TR.SNP,TS.NTR.TH);
+    TS.TR.SVD.ar = TS.TR.SVD.ar(1:endt,:);
 %
 
 

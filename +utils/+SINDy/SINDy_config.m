@@ -70,6 +70,10 @@ function SINDy = SINDy_config(SVD,param)
             %
         end
         %
+        delta_diff = flip(cumsum(diff(SINDy.delta)));
+        %
+        SINDy.delta(1:N-1) = SINDy.delta(N) - delta_diff;
+        %
     elseif strcmp(OptimizationMethod,'STR')
         %
         N = Ng.*(isfield(param,'Ng')) + 500.*(~isfield(param,'Ng'));

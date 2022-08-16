@@ -53,7 +53,7 @@ function [Xi,Alpha,Delta,R2,Nact] = paretoElbowl1(Theta,dX,alpha,delta,ftol,tol)
 
     for i = 1:size(ALPHA,1)
         for j = 1:size(DELTA,2)
-            D(i,j) = computeEuclideanD(m,n,NACT(i,j),RSQUARED(i,j));
+            D(i,j) = utils.modelling.computeEuclideanD(m,n,NACT(i,j),RSQUARED(i,j));
         end
     end
 
@@ -100,7 +100,7 @@ function [Xi,Alpha,Delta,R2,Nact] = paretoElbowl1(Theta,dX,alpha,delta,ftol,tol)
 % Look for elbow in the curve
 %
 
-    ir = elbowFit(N,R);
+    ir = utils.fits.elbowFit(N,R);
 
 %
 % If there are points with lower Nact but still a high R2, make that our

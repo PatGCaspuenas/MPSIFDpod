@@ -27,7 +27,7 @@ PO = S.PO;                       % Polynomial order
 Y = Y';                          % States of the system
 Nx = size(Chi,2);                % Number of sttes
 %
-Theta = poolpolyData(Y,Nx,PO);   % Library of functions in terms of states at time instant t
+Theta = utils.SINDy.poolpolyData(Y,Nx,PO);   % Library of functions in terms of states at time instant t
 %
 dY = (Theta*Chi)';               % Derivatives of the states of the system
 %

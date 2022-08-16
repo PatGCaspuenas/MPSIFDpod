@@ -99,9 +99,17 @@ function Xii = ALASSO(Theta, dX, alpha, delta, ftol,tol)
             if c >= Nmax
                 %
                 delta = delta - 0.05;
-                W = ones(Nf,1);
-                Xi0 = 1e6*ones(Nf,1);
+                W = ones(size(Theta,2),1);
                 c = 0;
+                %
+                Xi0 = Theta\dX;                             % solution from linear regression
+                %
+                zi = find(abs(Xi0(:,1)) <= max(abs(Xi0(:,1)))*tol); % indexes of negligible terms
+                nzi = find(abs(Xi0(:,1)) > max(abs(Xi0(:,1)))*tol); % indexes of non-negligible terms
+                %
+                Thetai = Theta(:,nzi);                      % reduced library matrix containing only non-negligible functionals
+                Xii = Xi0;                                  % allocation of Xii
+                Nf = size(Thetai,2);                        % number of non-negligible functionals
                 %
             end
 

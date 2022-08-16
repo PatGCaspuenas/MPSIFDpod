@@ -62,7 +62,7 @@ function NTR = createNTRSet(TR,SNPM,param)
                 %
             else                                % Regular spacing
                 % 
-                NTR.SNP.(var_str{i}) = aux(:,1:floor(ts/Dt):end);
+                NTR.SNP.(var_str{i}) = aux(:,1:(floor(ts/Dt)+1):end);
                 %
             end
         end
@@ -102,5 +102,5 @@ function NTR = createNTRSet(TR,SNPM,param)
     if strcmp(flagTimeSpacing,'irr')
         NTR.SNP.t = TR.t(it);
     else
-        NTR.SNP.t = TR.t(1:floor(ts/Dt):end);
+        NTR.SNP.t = TR.t(1:(floor(ts/Dt)+1):end);
     end
