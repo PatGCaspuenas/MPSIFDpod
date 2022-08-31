@@ -54,7 +54,7 @@ More details on each specific content of each structure is throughly explained i
 
 <a href="utils"><img src="https://github.com/PatGCaspuenas/MPSIFDpod/blob/main/docs/utils.png" height="700" ></a>
 
-<a href="datas"><img src="https://github.com/PatGCaspuenas/MPSIFDpod/blob/main/docs/data.png" height="200" ></a>
+<a href="datas"><img src="https://github.com/PatGCaspuenas/MPSIFDpod/blob/main/docs/data.png" height="150" ></a>
 
 
 A directory tree structure of the full repository can be seen above. Some remarks about the repository:
