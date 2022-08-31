@@ -54,20 +54,17 @@ More details on each specific content of each structure is throughly explained i
 
 <a href="utils"><img src="https://github.com/PatGCaspuenas/MPSIFDpod/blob/main/docs/utils.png" height="700" ></a>
 
-<a href="datas"><img src="https://github.com/PatGCaspuenas/MPSIFDpod/blob/main/docs/data.png" height="150" ></a>
+<a href="datas"><img src="https://github.com/PatGCaspuenas/MPSIFDpod/blob/main/docs/data.png" height="180" ></a>
 
 
 A directory tree structure of the full repository can be seen above. Some remarks about the repository:
 
-* The `\utils`directory contains all the functions used for the implementation. Arrangement of the functions is seen above. Functions marked with ```diff -red ```
+* The `\utils`directory contains all the functions used for the implementation. Arrangement of the functions is seen above. Functions marked with <font color="red"> red </font>
 and an asterisk correspond to open source code from external developers. In particular:
 
-    * ```diff 
-    -Laplacian2D.m
-    ``` 
-    and ```diff -pIntegrator.m``` were implemented by Chen, J. and Raiola, M. and Discetti, S. in [Data-driven-pressure-estimation-with-EPOD](https://github.com/erc-nextflow/Data-driven-pressure-estimation-with-EPOD).
-    * ```diff -poolpolyData.m``` by S. Brunton, J. Proctor and J. N. Kutz in [MATLAB: SINDy code base](https://faculty.washington.edu/kutz/page26/).
-    * ```diff -PSD.m``` by Khmou, Y. in [PSD (Power Spectral Density), and Amplitude Spectrum with adjusted FFT](https://www.mathworks.com/matlabcentral/fileexchange/40002-psd-power-spectral-density-and-amplitude-spectrum-with-adjusted-fft).
+    * <font color="red"> Laplacian2D.m </font> and <font color="red"> pIntegrator.m </font> were implemented by Chen, J. and Raiola, M. and Discetti, S. in [Data-driven-pressure-estimation-with-EPOD](https://github.com/erc-nextflow/Data-driven-pressure-estimation-with-EPOD).
+    * <font color="red"> poolpolyData.m </font> by S. Brunton, J. Proctor and J. N. Kutz in [MATLAB: SINDy code base](https://faculty.washington.edu/kutz/page26/).
+    * <font color="red"> PSD.m </font> by Khmou, Y. in [PSD (Power Spectral Density), and Amplitude Spectrum with adjusted FFT](https://www.mathworks.com/matlabcentral/fileexchange/40002-psd-power-spectral-density-and-amplitude-spectrum-with-adjusted-fft).
 
 * The `\data` directory is for the moment empty in the uploaded repository. It should contain the files depicted above. An 
 external link to give access to this data will be uploaded soon. With regards to the raw data necessary for the post-processing and arragement of the datasets:
