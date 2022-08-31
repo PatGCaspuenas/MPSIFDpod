@@ -52,7 +52,7 @@ More details on each specific content of each structure is throughly explained i
 
 ### Code structure
 
-![utils](https://github.com/PatGCaspuenas/MPSIFDpod/blob/main/docs/utils.png)
+![utils](https://github.com/PatGCaspuenas/MPSIFDpod/blob/main/docs/utils.png | height=500)
 
 ![data](https://github.com/PatGCaspuenas/MPSIFDpod/blob/main/docs/data.png)
 
