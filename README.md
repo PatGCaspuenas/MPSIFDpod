@@ -59,7 +59,7 @@ More details on each specific content of each structure is throughly explained i
 
 A directory tree structure of the full repository can be seen above. Some remarks about the repository:
 
-* The `\utils`directory contains all the functions used for the implementation. Arrangement of the functions is seen above. Functions marked with <font color="red"> red </font>
+* The `\utils`directory contains all the functions used for the implementation. Arrangement of the functions is seen above. Functions marked with <tspan fill="red">red </tspan>
 and an asterisk correspond to open source code from external developers. In particular:
 
     * <font color="red"> Laplacian2D.m </font> and <font color="red"> pIntegrator.m </font> were implemented by Chen, J. and Raiola, M. and Discetti, S. in [Data-driven-pressure-estimation-with-EPOD](https://github.com/erc-nextflow/Data-driven-pressure-estimation-with-EPOD).
