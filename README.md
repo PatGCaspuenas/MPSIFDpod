@@ -61,14 +61,14 @@ A directory tree structure of the full repository can be seen above. Some remark
 * The `\utils`directory contains all the functions used for the implementation. Arrangement of the functions is seen above. Functions marked with ```diff -red ```
 and an asterisk correspond to open source code from external developers. In particular:
 
-** ```diff -Laplacian2D.m``` and ```diff -pIntegrator.m``` were implemented by Chen, J. and Raiola, M. and Discetti, S. in [Data-driven-pressure-estimation-with-EPOD](https://github.com/erc-nextflow/Data-driven-pressure-estimation-with-EPOD).
-** ```diff -poolpolyData.m``` by S. Brunton, J. Proctor and J. N. Kutz in [MATLAB: SINDy code base](https://faculty.washington.edu/kutz/page26/).
-** ```diff -PSD.m``` by Khmou, Y. in [PSD (Power Spectral Density), and Amplitude Spectrum with adjusted FFT](https://www.mathworks.com/matlabcentral/fileexchange/40002-psd-power-spectral-density-and-amplitude-spectrum-with-adjusted-fft).
+    * ```diff -Laplacian2D.m``` and ```diff -pIntegrator.m``` were implemented by Chen, J. and Raiola, M. and Discetti, S. in [Data-driven-pressure-estimation-with-EPOD](https://github.com/erc-nextflow/Data-driven-pressure-estimation-with-EPOD).
+    * ```diff -poolpolyData.m``` by S. Brunton, J. Proctor and J. N. Kutz in [MATLAB: SINDy code base](https://faculty.washington.edu/kutz/page26/).
+    * ```diff -PSD.m``` by Khmou, Y. in [PSD (Power Spectral Density), and Amplitude Spectrum with adjusted FFT](https://www.mathworks.com/matlabcentral/fileexchange/40002-psd-power-spectral-density-and-amplitude-spectrum-with-adjusted-fft).
 
 * The `\data` directory is for the moment empty in the uploaded repository. It should contain the files depicted above. An 
 external link to give access to this data will be uploaded soon. With regards to the raw data necessary for the post-processing and arragement of the datasets:
-** Access to the DNS Fluidic Pinball data was granted by Noack, B.R. and Morzynski, M. in The Fluidic PinBall - a Toolkit for Multiple-Input Multiple-Output Flow Control ({V}ersion 1.0).
-** Access to the planar PIV experiment can be found available in [https://doi.org/10.5281/zenodo.6473075](https://doi.org/10.5281/zenodo.6473075)
+   * Access to the DNS Fluidic Pinball data was granted by Noack, B.R. and Morzynski, M. in The Fluidic PinBall - a Toolkit for Multiple-Input Multiple-Output Flow Control ({V}ersion 1.0).
+    * Access to the planar PIV experiment can be found available in [https://doi.org/10.5281/zenodo.6473075](https://doi.org/10.5281/zenodo.6473075)
     
 
 ## Acknowledgments
